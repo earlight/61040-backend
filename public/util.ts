@@ -99,14 +99,32 @@ const operations: Operation[] = [
     fields: { content: "input", parent: "input" },
   },
   {
-    name: "Update Comment",
-    endpoint: "/api/comments/:id",
-    method: "PATCH",
-    fields: { id: "input", content: "input" },
-  },
-  {
     name: "Delete Comment",
     endpoint: "/api/comments/:id",
+    method: "DELETE",
+    fields: { id: "input" },
+  },
+  {
+    name: "Get Reactions by User (empty for all users)",
+    endpoint: "/api/reactions",
+    method: "GET",
+    fields: { author: "input" },
+  },
+  {
+    name: "Get Reactions by Item",
+    endpoint: "/api/reactions/:item",
+    method: "GET",
+    fields: { item: "input" },
+  },
+  {
+    name: "Create Reaction",
+    endpoint: "/api/reactions",
+    method: "POST",
+    fields: { type: "input", item: "input" },
+  },
+  {
+    name: "Delete Reaction",
+    endpoint: "/api/reactions/:id",
     method: "DELETE",
     fields: { id: "input" },
   },

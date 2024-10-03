@@ -2,6 +2,7 @@ import { Authing } from "./app";
 import { CommentAuthorNotMatchError, CommentDoc } from "./concepts/commenting";
 import { AlreadyFriendsError, FriendNotFoundError, FriendRequestAlreadyExistsError, FriendRequestDoc, FriendRequestNotFoundError } from "./concepts/friending";
 import { PostAuthorNotMatchError, PostDoc } from "./concepts/posting";
+import { ReactionAuthorNotMatchError, ReactionDoc } from "./concepts/reacting";
 import { Router } from "./framework/router";
 
 /**
@@ -48,6 +49,25 @@ export default class Responses {
   }
 
   /**
+   * Convert ReactionDoc into more readable format for the frontend by converting the author id into a username.
+   */
+  static async reaction(reaction: ReactionDoc | null) {
+    if (!reaction) {
+      return reaction;
+    }
+    const author = await Authing.getUserById(reaction.author);
+    return { ...reaction, author: author.username };
+  }
+
+  /**
+   * Same as {@link reaction} but for an array of ReactionDoc for improved performance.
+   */
+  static async reactions(reactions: ReactionDoc[]) {
+    const authors = await Authing.idsToUsernames(reactions.map((reaction) => reaction.author));
+    return reactions.map((reaction, i) => ({ ...reaction, author: authors[i] }));
+  }
+
+  /**
    * Convert FriendRequestDoc into more readable format for the frontend
    * by converting the ids into usernames.
    */
@@ -65,6 +85,11 @@ Router.registerError(PostAuthorNotMatchError, async (e) => {
 });
 
 Router.registerError(CommentAuthorNotMatchError, async (e) => {
+  const username = (await Authing.getUserById(e.author)).username;
+  return e.formatWith(username, e._id);
+});
+
+Router.registerError(ReactionAuthorNotMatchError, async (e) => {
   const username = (await Authing.getUserById(e.author)).username;
   return e.formatWith(username, e._id);
 });

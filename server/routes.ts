@@ -2,7 +2,7 @@ import { ObjectId } from "mongodb";
 
 import { Router, getExpressRouter } from "./framework/router";
 
-import { Authing, Commenting, Friending, Posting, Sessioning } from "./app";
+import { Authing, Commenting, Friending, Posting, Reacting, Sessioning } from "./app";
 import { PostOptions } from "./concepts/posting";
 import { SessionDoc } from "./concepts/sessioning";
 import Responses from "./responses";
@@ -122,11 +122,6 @@ class Routes {
   @Router.get("/comments/:parent")
   async getCommentsByParent(parent: string) {
     const parentOid = new ObjectId(parent);
-    try {
-      await Posting.assertPostExists(parentOid);
-    } catch {
-      await Commenting.assertCommentExists(parentOid);
-    }
     return Responses.comments(await Commenting.getByParent(parentOid));
   }
 
@@ -143,14 +138,6 @@ class Routes {
     return { msg: created.msg, comment: await Responses.comment(created.comment) };
   }
 
-  @Router.patch("/comments/:id")
-  async updateComment(session: SessionDoc, id: string, content?: string) {
-    const user = Sessioning.getUser(session);
-    const oid = new ObjectId(id);
-    await Commenting.assertAuthorIsUser(oid, user);
-    return await Commenting.update(oid, content);
-  }
-
   @Router.delete("/comments/:id")
   async deleteComment(session: SessionDoc, id: string) {
     const user = Sessioning.getUser(session);
@@ -158,6 +145,48 @@ class Routes {
     await Commenting.assertAuthorIsUser(oid, user);
     return Commenting.delete(oid);
   }
+
+  @Router.get("/reactions")
+  @Router.validate(z.object({ author: z.string().optional() }))
+  async getReactions(author?: string) {
+    let reactions;
+    if (author) {
+      const id = (await Authing.getUserByUsername(author))._id;
+      reactions = await Reacting.getByAuthor(id);
+    } else {
+      reactions = await Reacting.getReactions();
+    }
+    return Responses.reactions(reactions);
+  }
+
+  @Router.get("/reactions/:item")
+  async getReactionsByItem(item: string) {
+    const itemOid = new ObjectId(item);
+    return Responses.reactions(await Reacting.getByItem(itemOid));
+  }
+
+  @Router.post("/reactions")
+  async createReaction(session: SessionDoc, type: string, item: string) {
+    const user = Sessioning.getUser(session);
+    const itemOid = new ObjectId(item);
+    try {
+      await Posting.assertPostExists(itemOid);
+    } catch {
+      await Commenting.assertCommentExists(itemOid);
+    }
+    const created = await Reacting.create(user, type, itemOid);
+    return { msg: created.msg, reaction: await Responses.reaction(created.reaction) };
+  }
+
+  @Router.delete("/reactions/:id")
+  async deleteReaction(session: SessionDoc, id: string) {
+    const user = Sessioning.getUser(session);
+    const oid = new ObjectId(id);
+    await Reacting.assertAuthorIsUser(oid, user);
+    return Reacting.delete(oid);
+  }
+
+  // TODO: delete friending concept (will use following concept instead)
 
   @Router.get("/friends")
   async getFriends(session: SessionDoc) {

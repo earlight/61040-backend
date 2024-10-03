@@ -40,11 +40,6 @@ export default class CommentingConcept {
     return await this.comments.readMany({ parent });
   }
 
-  async update(_id: ObjectId, content?: string) {
-    await this.comments.partialUpdateOne({ _id }, { content });
-    return { msg: "Comment successfully updated!" };
-  }
-
   async delete(_id: ObjectId) {
     await this.comments.deleteOne({ _id });
     return { msg: "Comment deleted successfully!" };
