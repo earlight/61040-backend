@@ -186,7 +186,7 @@ class Routes {
     return Reacting.delete(oid);
   }
 
-  // TODO: delete friending concept (will use following concept instead)
+  // TODO for Beta: delete friending concept (will use following concept instead)
 
   @Router.get("/friends")
   async getFriends(session: SessionDoc) {
@@ -233,6 +233,79 @@ class Routes {
     const user = Sessioning.getUser(session);
     const fromOid = (await Authing.getUserByUsername(from))._id;
     return await Friending.rejectRequest(fromOid, user);
+  }
+
+  /**
+   * TODO for Beta: implement Following concept
+   */
+
+  // get who the current session user is following
+  @Router.get("/following")
+  async getFollowing(session: SessionDoc) {
+    throw new Error("TODO for Beta: not implemented");
+  }
+
+  // get who any user is following by username
+  @Router.get("/following/:username")
+  async getFollowingByUsername(username: string) {
+    throw new Error("TODO for Beta: not implemented");
+  }
+
+  // get who is following the current session user
+  @Router.get("/followers")
+  async getFollowers(session: SessionDoc) {
+    throw new Error("TODO for Beta: not implemented");
+  }
+
+  // get who is following any user by username
+  @Router.get("/followers/:username")
+  async getFollowersByUsername(username: string) {
+    throw new Error("TODO for Beta: not implemented");
+  }
+
+  // follow a user by username
+  @Router.post("/follow/:username")
+  async follow(session: SessionDoc, username: string) {
+    throw new Error("TODO for Beta: not implemented");
+  }
+
+  // unfollow a user by username
+  @Router.delete("/follow/:username")
+  async unfollow(session: SessionDoc, username: string) {
+    throw new Error("TODO for Beta: not implemented");
+  }
+
+  /**
+   * TODO for Beta: implement Scoring concept
+   *
+   * Note:
+   *
+   * During A4 Beta, I will synchronize the creation of an item's score when the item is created.
+   * e.g. I will sync the creationg of a post's score when a post is created.
+   * e.g. I will sync the creationg of a user's score when the user registers.
+   *
+   * Thus, the Scoring concept does not need api endpoints for creating scores (since that is done elsewhere).
+   *
+   * The scoring concept is simple for storing, viewing, and updating scores.
+   * The actual algorithm/formula for calculating scores will be done in a seperate app-level function/feature.
+   */
+
+  // get the score of the current session user
+  @Router.get("/score")
+  async getScore(session: SessionDoc) {
+    throw new Error("TODO for Beta: not implemented");
+  }
+
+  // get the score of any user by item (user, post, or comment)
+  @Router.get("/score/:item")
+  async getScoreByItem(item: string) {
+    throw new Error("TODO for Beta: not implemented");
+  }
+
+  // update the score of any user by item (user, post, or comment)
+  @Router.patch("/score/:item")
+  async updateScoreByItem(session: SessionDoc, item: string, score: number) {
+    throw new Error("TODO for Beta: not implemented");
   }
 }
 
