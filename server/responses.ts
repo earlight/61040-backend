@@ -1,4 +1,5 @@
 import { Authing } from "./app";
+import { CommentAuthorNotMatchError, CommentDoc } from "./concepts/commenting";
 import { AlreadyFriendsError, FriendNotFoundError, FriendRequestAlreadyExistsError, FriendRequestDoc, FriendRequestNotFoundError } from "./concepts/friending";
 import { PostAuthorNotMatchError, PostDoc } from "./concepts/posting";
 import { Router } from "./framework/router";
@@ -28,6 +29,25 @@ export default class Responses {
   }
 
   /**
+   * Convert CommentDoc into more readable format for the frontend by converting the author id into a username.
+   */
+  static async comment(comment: CommentDoc | null) {
+    if (!comment) {
+      return comment;
+    }
+    const author = await Authing.getUserById(comment.author);
+    return { ...comment, author: author.username };
+  }
+
+  /**
+   * Same as {@link comment} but for an array of CommentDoc for improved performance.
+   */
+  static async comments(comments: CommentDoc[]) {
+    const authors = await Authing.idsToUsernames(comments.map((comment) => comment.author));
+    return comments.map((comment, i) => ({ ...comment, author: authors[i] }));
+  }
+
+  /**
    * Convert FriendRequestDoc into more readable format for the frontend
    * by converting the ids into usernames.
    */
@@ -40,6 +60,11 @@ export default class Responses {
 }
 
 Router.registerError(PostAuthorNotMatchError, async (e) => {
+  const username = (await Authing.getUserById(e.author)).username;
+  return e.formatWith(username, e._id);
+});
+
+Router.registerError(CommentAuthorNotMatchError, async (e) => {
   const username = (await Authing.getUserById(e.author)).username;
   return e.formatWith(username, e._id);
 });

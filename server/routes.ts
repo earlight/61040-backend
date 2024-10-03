@@ -2,7 +2,7 @@ import { ObjectId } from "mongodb";
 
 import { Router, getExpressRouter } from "./framework/router";
 
-import { Authing, Friending, Posting, Sessioning } from "./app";
+import { Authing, Commenting, Friending, Posting, Sessioning } from "./app";
 import { PostOptions } from "./concepts/posting";
 import { SessionDoc } from "./concepts/sessioning";
 import Responses from "./responses";
@@ -104,6 +104,51 @@ class Routes {
     const oid = new ObjectId(id);
     await Posting.assertAuthorIsUser(oid, user);
     return Posting.delete(oid);
+  }
+
+  @Router.get("/comments")
+  @Router.validate(z.object({ author: z.string().optional() }))
+  async getComments(author?: string) {
+    let comments;
+    if (author) {
+      const id = (await Authing.getUserByUsername(author))._id;
+      comments = await Commenting.getByAuthor(id);
+    } else {
+      comments = await Commenting.getComments();
+    }
+    return Responses.comments(comments);
+  }
+
+  @Router.get("/comments/:parent")
+  async getCommentsByParent(parent: string) {
+    const parentOid = new ObjectId(parent);
+    await Posting.assertPostExists(parentOid);
+    return Responses.comments(await Commenting.getByParent(parentOid));
+  }
+
+  @Router.post("/comments")
+  async createComment(session: SessionDoc, content: string, parent: string) {
+    const user = Sessioning.getUser(session);
+    const parentOid = new ObjectId(parent);
+    await Posting.assertPostExists(parentOid);
+    const created = await Commenting.create(user, content, parentOid);
+    return { msg: created.msg, comment: await Responses.comment(created.comment) };
+  }
+
+  @Router.patch("/comments/:id")
+  async updateComment(session: SessionDoc, id: string, content?: string) {
+    const user = Sessioning.getUser(session);
+    const oid = new ObjectId(id);
+    await Commenting.assertAuthorIsUser(oid, user);
+    return await Commenting.update(oid, content);
+  }
+
+  @Router.delete("/comments/:id")
+  async deleteComment(session: SessionDoc, id: string) {
+    const user = Sessioning.getUser(session);
+    const oid = new ObjectId(id);
+    await Commenting.assertAuthorIsUser(oid, user);
+    return Commenting.delete(oid);
   }
 
   @Router.get("/friends")
