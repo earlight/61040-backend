@@ -122,7 +122,11 @@ class Routes {
   @Router.get("/comments/:parent")
   async getCommentsByParent(parent: string) {
     const parentOid = new ObjectId(parent);
-    await Posting.assertPostExists(parentOid);
+    try {
+      await Posting.assertPostExists(parentOid);
+    } catch {
+      await Commenting.assertCommentExists(parentOid);
+    }
     return Responses.comments(await Commenting.getByParent(parentOid));
   }
 
@@ -130,7 +134,11 @@ class Routes {
   async createComment(session: SessionDoc, content: string, parent: string) {
     const user = Sessioning.getUser(session);
     const parentOid = new ObjectId(parent);
-    await Posting.assertPostExists(parentOid);
+    try {
+      await Posting.assertPostExists(parentOid);
+    } catch {
+      await Commenting.assertCommentExists(parentOid);
+    }
     const created = await Commenting.create(user, content, parentOid);
     return { msg: created.msg, comment: await Responses.comment(created.comment) };
   }

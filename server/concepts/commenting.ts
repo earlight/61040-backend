@@ -59,6 +59,12 @@ export default class CommentingConcept {
       throw new CommentAuthorNotMatchError(user, _id);
     }
   }
+
+  async assertCommentExists(_id: ObjectId) {
+    if (!(await this.comments.readOne({ _id }))) {
+      throw new NotFoundError(`Comment ${_id} does not exist!`);
+    }
+  }
 }
 
 export class CommentAuthorNotMatchError extends NotAllowedError {
