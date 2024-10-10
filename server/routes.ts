@@ -119,7 +119,7 @@ class Routes {
     return Responses.comments(comments);
   }
 
-  @Router.get("/comments/:parent")
+  @Router.get("/comments/parent")
   async getCommentsByParent(parent: string) {
     const parentOid = new ObjectId(parent);
     return Responses.comments(await Commenting.getByParent(parentOid));
@@ -159,7 +159,7 @@ class Routes {
     return Responses.reactions(reactions);
   }
 
-  @Router.get("/reactions/:item")
+  @Router.get("/reactions/item")
   async getReactionsByItem(item: string) {
     const itemOid = new ObjectId(item);
     return Responses.reactions(await Reacting.getByItem(itemOid));

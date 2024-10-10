@@ -88,7 +88,7 @@ const operations: Operation[] = [
   },
   {
     name: "Get Comments by Parent",
-    endpoint: "/api/comments/:parent",
+    endpoint: "/api/comments/parent",
     method: "GET",
     fields: { parent: "input" },
   },
@@ -112,7 +112,7 @@ const operations: Operation[] = [
   },
   {
     name: "Get Reactions by Item",
-    endpoint: "/api/reactions/:item",
+    endpoint: "/api/reactions/item",
     method: "GET",
     fields: { item: "input" },
   },
