@@ -79,12 +79,12 @@ export class NotFollowingError extends NotFoundError {
 
 export class SelfFollowError extends NotAllowedError {
   constructor(public user: ObjectId) {
-    super("Cannot follow yourself!", user);
+    super("Cannot follow yourself, {0}!", user);
   }
 }
 
 export class SelfUnfollowError extends NotAllowedError {
   constructor(public user: ObjectId) {
-    super("Cannot unfollow yourself!", user);
+    super("Cannot unfollow yourself, {0}!", user);
   }
 }

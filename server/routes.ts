@@ -2,7 +2,7 @@ import { ObjectId } from "mongodb";
 
 import { Router, getExpressRouter } from "./framework/router";
 
-import { Authing, Commenting, Following, Friending, Posting, Reacting, Sessioning } from "./app";
+import { Authing, Commenting, Following, Posting, Reacting, Sessioning } from "./app";
 import { PostOptions } from "./concepts/posting";
 import { SessionDoc } from "./concepts/sessioning";
 import Responses from "./responses";
@@ -185,59 +185,6 @@ class Routes {
     await Reacting.assertAuthorIsUser(oid, user);
     return Reacting.delete(oid);
   }
-
-  // TODO for Beta: delete friending concept (will use following concept instead)
-
-  @Router.get("/friends")
-  async getFriends(session: SessionDoc) {
-    const user = Sessioning.getUser(session);
-    return await Authing.idsToUsernames(await Friending.getFriends(user));
-  }
-
-  @Router.delete("/friends/:friend")
-  async removeFriend(session: SessionDoc, friend: string) {
-    const user = Sessioning.getUser(session);
-    const friendOid = (await Authing.getUserByUsername(friend))._id;
-    return await Friending.removeFriend(user, friendOid);
-  }
-
-  @Router.get("/friend/requests")
-  async getRequests(session: SessionDoc) {
-    const user = Sessioning.getUser(session);
-    return await Responses.friendRequests(await Friending.getRequests(user));
-  }
-
-  @Router.post("/friend/requests/:to")
-  async sendFriendRequest(session: SessionDoc, to: string) {
-    const user = Sessioning.getUser(session);
-    const toOid = (await Authing.getUserByUsername(to))._id;
-    return await Friending.sendRequest(user, toOid);
-  }
-
-  @Router.delete("/friend/requests/:to")
-  async removeFriendRequest(session: SessionDoc, to: string) {
-    const user = Sessioning.getUser(session);
-    const toOid = (await Authing.getUserByUsername(to))._id;
-    return await Friending.removeRequest(user, toOid);
-  }
-
-  @Router.put("/friend/accept/:from")
-  async acceptFriendRequest(session: SessionDoc, from: string) {
-    const user = Sessioning.getUser(session);
-    const fromOid = (await Authing.getUserByUsername(from))._id;
-    return await Friending.acceptRequest(fromOid, user);
-  }
-
-  @Router.put("/friend/reject/:from")
-  async rejectFriendRequest(session: SessionDoc, from: string) {
-    const user = Sessioning.getUser(session);
-    const fromOid = (await Authing.getUserByUsername(from))._id;
-    return await Friending.rejectRequest(fromOid, user);
-  }
-
-  /**
-   * TODO for Beta: implement Following concept
-   */
 
   // get a user's followers
   @Router.get("/followers")
