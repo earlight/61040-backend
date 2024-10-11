@@ -42,12 +42,6 @@ class Routes {
     return created;
   }
 
-  @Router.patch("/users/username")
-  async updateUsername(session: SessionDoc, username: string) {
-    const user = Sessioning.getUser(session);
-    return await Authing.updateUsername(user, username);
-  }
-
   @Router.patch("/users/password")
   async updatePassword(session: SessionDoc, currentPassword: string, newPassword: string) {
     const user = Sessioning.getUser(session);
@@ -95,14 +89,6 @@ class Routes {
       Scoring.create(created.post._id);
     }
     return { msg: created.msg, post: await Responses.post(created.post) };
-  }
-
-  @Router.patch("/posts/:id")
-  async updatePost(session: SessionDoc, id: string, content?: string, options?: PostOptions) {
-    const user = Sessioning.getUser(session);
-    const oid = new ObjectId(id);
-    await Posting.assertAuthorIsUser(oid, user);
-    return await Posting.update(oid, content, options);
   }
 
   @Router.delete("/posts/:id")

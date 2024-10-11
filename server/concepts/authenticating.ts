@@ -74,12 +74,6 @@ export default class AuthenticatingConcept {
     return { msg: "Successfully authenticated.", _id: user._id };
   }
 
-  async updateUsername(_id: ObjectId, username: string) {
-    await this.assertUsernameUnique(username);
-    await this.users.partialUpdateOne({ _id }, { username });
-    return { msg: "Username updated successfully!" };
-  }
-
   async updatePassword(_id: ObjectId, currentPassword: string, newPassword: string) {
     const user = await this.users.readOne({ _id });
     if (!user) {
