@@ -128,9 +128,30 @@ const operations: Operation[] = [
     method: "DELETE",
     fields: { id: "input" },
   },
-  //
-  // ...
-  //
+  {
+    name: "Get a User's Followers",
+    endpoint: "/api/followers",
+    method: "GET",
+    fields: { username: "input" },
+  },
+  {
+    name: "Get who a User is Following",
+    endpoint: "/api/following",
+    method: "GET",
+    fields: { username: "input" },
+  },
+  {
+    name: "Follow User",
+    endpoint: "/api/follow",
+    method: "POST",
+    fields: { username: "input" },
+  },
+  {
+    name: "Unfollow User",
+    endpoint: "/api/follow",
+    method: "DELETE",
+    fields: { username: "input" },
+  },
 ];
 
 /*

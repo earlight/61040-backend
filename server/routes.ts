@@ -2,7 +2,7 @@ import { ObjectId } from "mongodb";
 
 import { Router, getExpressRouter } from "./framework/router";
 
-import { Authing, Commenting, Friending, Posting, Reacting, Sessioning } from "./app";
+import { Authing, Commenting, Following, Friending, Posting, Reacting, Sessioning } from "./app";
 import { PostOptions } from "./concepts/posting";
 import { SessionDoc } from "./concepts/sessioning";
 import Responses from "./responses";
@@ -239,40 +239,34 @@ class Routes {
    * TODO for Beta: implement Following concept
    */
 
-  // get who the current session user is following
-  @Router.get("/following")
-  async getFollowing(session: SessionDoc) {
-    throw new Error("TODO for Beta: not implemented");
-  }
-
-  // get who any user is following by username
-  @Router.get("/following/:username")
-  async getFollowingByUsername(username: string) {
-    throw new Error("TODO for Beta: not implemented");
-  }
-
-  // get who is following the current session user
+  // get a user's followers
   @Router.get("/followers")
-  async getFollowers(session: SessionDoc) {
-    throw new Error("TODO for Beta: not implemented");
+  async getFollowers(username: string) {
+    const userOid = (await Authing.getUserByUsername(username))._id;
+    return await Responses.follows(await Following.getFollowers(userOid));
   }
 
-  // get who is following any user by username
-  @Router.get("/followers/:username")
-  async getFollowersByUsername(username: string) {
-    throw new Error("TODO for Beta: not implemented");
+  // get who a user is following
+  @Router.get("/following")
+  async getFollowing(username: string) {
+    const userOid = (await Authing.getUserByUsername(username))._id;
+    return await Responses.follows(await Following.getFollowing(userOid));
   }
 
   // follow a user by username
-  @Router.post("/follow/:username")
+  @Router.post("/follow")
   async follow(session: SessionDoc, username: string) {
-    throw new Error("TODO for Beta: not implemented");
+    const user = Sessioning.getUser(session);
+    const followeeOid = (await Authing.getUserByUsername(username))._id;
+    return await Following.follow(user, followeeOid);
   }
 
   // unfollow a user by username
-  @Router.delete("/follow/:username")
+  @Router.delete("/follow")
   async unfollow(session: SessionDoc, username: string) {
-    throw new Error("TODO for Beta: not implemented");
+    const user = Sessioning.getUser(session);
+    const followeeOid = (await Authing.getUserByUsername(username))._id;
+    return await Following.unfollow(user, followeeOid);
   }
 
   /**

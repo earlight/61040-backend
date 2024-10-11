@@ -1,5 +1,6 @@
 import { Authing } from "./app";
 import { CommentAuthorNotMatchError, CommentDoc } from "./concepts/commenting";
+import { AlreadyFollowingError, FollowDoc, NotFollowingError, SelfFollowError, SelfUnfollowError } from "./concepts/following";
 import { AlreadyFriendsError, FriendNotFoundError, FriendRequestAlreadyExistsError, FriendRequestDoc, FriendRequestNotFoundError } from "./concepts/friending";
 import { PostAuthorNotMatchError, PostDoc } from "./concepts/posting";
 import { ReactionAuthorNotMatchError, ReactionDoc } from "./concepts/reacting";
@@ -77,6 +78,17 @@ export default class Responses {
     const usernames = await Authing.idsToUsernames(from.concat(to));
     return requests.map((request, i) => ({ ...request, from: usernames[i], to: usernames[i + requests.length] }));
   }
+
+  /**
+   * Convert FollowDoc into more readable format for the frontend
+   * by converting the ids into usernames.
+   */
+  static async follows(follows: FollowDoc[]) {
+    const followers = follows.map((follow) => follow.follower);
+    const followees = follows.map((follow) => follow.followee);
+    const usernames = await Authing.idsToUsernames(followers.concat(followees));
+    return follows.map((follow, i) => ({ ...follow, follower: usernames[i], followee: usernames[i + follows.length] }));
+  }
 }
 
 Router.registerError(PostAuthorNotMatchError, async (e) => {
@@ -112,4 +124,24 @@ Router.registerError(FriendRequestNotFoundError, async (e) => {
 Router.registerError(AlreadyFriendsError, async (e) => {
   const [user1, user2] = await Promise.all([Authing.getUserById(e.user1), Authing.getUserById(e.user2)]);
   return e.formatWith(user1.username, user2.username);
+});
+
+Router.registerError(AlreadyFollowingError, async (e) => {
+  const [follower, followee] = await Promise.all([Authing.getUserById(e.follower), Authing.getUserById(e.followee)]);
+  return e.formatWith(follower.username, followee.username);
+});
+
+Router.registerError(NotFollowingError, async (e) => {
+  const [follower, followee] = await Promise.all([Authing.getUserById(e.follower), Authing.getUserById(e.followee)]);
+  return e.formatWith(follower.username, followee.username);
+});
+
+Router.registerError(SelfFollowError, async (e) => {
+  const user = await Authing.getUserById(e.user);
+  return e.formatWith(user.username);
+});
+
+Router.registerError(SelfUnfollowError, async (e) => {
+  const user = await Authing.getUserById(e.user);
+  return e.formatWith(user.username);
 });
