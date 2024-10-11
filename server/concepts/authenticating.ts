@@ -82,7 +82,7 @@ export default class AuthenticatingConcept {
     if (user.password !== currentPassword) {
       throw new NotAllowedError("The given current password is wrong!");
     }
-
+    await this.assertGoodPassword(newPassword);
     await this.users.partialUpdateOne({ _id }, { password: newPassword });
     return { msg: "Password updated successfully!" };
   }
@@ -96,6 +96,12 @@ export default class AuthenticatingConcept {
     const maybeUser = await this.users.readOne({ _id });
     if (maybeUser === null) {
       throw new NotFoundError(`User not found!`);
+    }
+  }
+
+  private async assertGoodPassword(password: string) {
+    if (!password) {
+      throw new BadValuesError("Password must be non-empty!");
     }
   }
 
