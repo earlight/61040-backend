@@ -152,6 +152,18 @@ const operations: Operation[] = [
     method: "DELETE",
     fields: { username: "input" },
   },
+  {
+    name: "Get Scores by ObjectID (empty for all items)",
+    endpoint: "/api/score",
+    method: "GET",
+    fields: { item: "input" },
+  },
+  {
+    name: "Update Score",
+    endpoint: "/api/score",
+    method: "PATCH",
+    fields: { item: "input", score: "input" },
+  },
 ];
 
 /*

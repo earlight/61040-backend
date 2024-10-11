@@ -2,7 +2,7 @@ import { ObjectId } from "mongodb";
 
 import { Router, getExpressRouter } from "./framework/router";
 
-import { Authing, Commenting, Following, Posting, Reacting, Sessioning } from "./app";
+import { Authing, Commenting, Following, Posting, Reacting, Scoring, Sessioning } from "./app";
 import { PostOptions } from "./concepts/posting";
 import { SessionDoc } from "./concepts/sessioning";
 import Responses from "./responses";
@@ -35,7 +35,11 @@ class Routes {
   @Router.post("/users")
   async createUser(session: SessionDoc, username: string, password: string) {
     Sessioning.isLoggedOut(session);
-    return await Authing.create(username, password);
+    const created = await Authing.create(username, password);
+    if (created.user) {
+      Scoring.create(created.user._id);
+    }
+    return created;
   }
 
   @Router.patch("/users/username")
@@ -87,6 +91,9 @@ class Routes {
   async createPost(session: SessionDoc, content: string, options?: PostOptions) {
     const user = Sessioning.getUser(session);
     const created = await Posting.create(user, content, options);
+    if (created.post) {
+      Scoring.create(created.post._id);
+    }
     return { msg: created.msg, post: await Responses.post(created.post) };
   }
 
@@ -135,6 +142,9 @@ class Routes {
       await Commenting.assertCommentExists(parentOid);
     }
     const created = await Commenting.create(user, content, parentOid);
+    if (created.comment) {
+      Scoring.create(created.comment._id);
+    }
     return { msg: created.msg, comment: await Responses.comment(created.comment) };
   }
 
@@ -216,37 +226,23 @@ class Routes {
     return await Following.unfollow(user, followeeOid);
   }
 
-  /**
-   * TODO for Beta: implement Scoring concept
-   *
-   * Note:
-   *
-   * During A4 Beta, I will synchronize the creation of an item's score when the item is created.
-   * e.g. I will sync the creationg of a post's score when a post is created.
-   * e.g. I will sync the creationg of a user's score when the user registers.
-   *
-   * Thus, the Scoring concept does not need api endpoints for creating scores (since that is done elsewhere).
-   *
-   * The scoring concept is simple for storing, viewing, and updating scores.
-   * The actual algorithm/formula for calculating scores will be done in a seperate app-level function/feature.
-   */
-
-  // get the score of the current session user
+  // get the score of any item by ObjectId (empty for all items)
   @Router.get("/score")
-  async getScore(session: SessionDoc) {
-    throw new Error("TODO for Beta: not implemented");
+  @Router.validate(z.object({ item: z.string().optional() }))
+  async getScoreByItem(item?: string) {
+    if (item) {
+      const itemOid = new ObjectId(item);
+      return await Scoring.getByItem(itemOid);
+    } else {
+      return await Scoring.getScores();
+    }
   }
 
-  // get the score of any user by item (user, post, or comment)
-  @Router.get("/score/:item")
-  async getScoreByItem(item: string) {
-    throw new Error("TODO for Beta: not implemented");
-  }
-
-  // update the score of any user by item (user, post, or comment)
-  @Router.patch("/score/:item")
-  async updateScoreByItem(session: SessionDoc, item: string, score: number) {
-    throw new Error("TODO for Beta: not implemented");
+  // update the score of an item by ObjectId
+  @Router.patch("/score")
+  async updateScoreByItem(item: string, score: number) {
+    const itemOid = new ObjectId(item);
+    return await Scoring.update(itemOid, score);
   }
 }
 
