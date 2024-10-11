@@ -2,7 +2,7 @@ import { Authing } from "./app";
 import { CommentAuthorNotMatchError, CommentDoc } from "./concepts/commenting";
 import { AlreadyFollowingError, FollowDoc, NotFollowingError, SelfFollowError, SelfUnfollowError } from "./concepts/following";
 import { PostAuthorNotMatchError, PostDoc } from "./concepts/posting";
-import { ReactionAuthorNotMatchError, ReactionDoc } from "./concepts/reacting";
+import { AlreadyReactedError, ReactionDoc, ReactionNotFoundError } from "./concepts/reacting";
 import { Router } from "./framework/router";
 
 /**
@@ -89,9 +89,14 @@ Router.registerError(CommentAuthorNotMatchError, async (e) => {
   return e.formatWith(username, e._id);
 });
 
-Router.registerError(ReactionAuthorNotMatchError, async (e) => {
+Router.registerError(ReactionNotFoundError, async (e) => {
   const username = (await Authing.getUserById(e.author)).username;
-  return e.formatWith(username, e._id);
+  return e.formatWith(username, e.item);
+});
+
+Router.registerError(AlreadyReactedError, async (e) => {
+  const username = (await Authing.getUserById(e.author)).username;
+  return e.formatWith(username, e.item);
 });
 
 Router.registerError(AlreadyFollowingError, async (e) => {

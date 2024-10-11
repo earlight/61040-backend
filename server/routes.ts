@@ -170,16 +170,27 @@ class Routes {
     } catch {
       await Commenting.assertCommentExists(itemOid);
     }
+    await Reacting.assertNotAlreadyReacted(user, itemOid);
     const created = await Reacting.create(user, type, itemOid);
     return { msg: created.msg, reaction: await Responses.reaction(created.reaction) };
   }
 
-  @Router.delete("/reactions/:id")
-  async deleteReaction(session: SessionDoc, id: string) {
+  @Router.patch("/reactions")
+  async updateReaction(session: SessionDoc, type: string, item: string) {
     const user = Sessioning.getUser(session);
-    const oid = new ObjectId(id);
-    await Reacting.assertAuthorIsUser(oid, user);
-    return Reacting.delete(oid);
+    const itemOid = new ObjectId(item);
+    await Reacting.assertReactionExists(user, itemOid);
+    await Reacting.update(user, type, itemOid);
+    return { msg: "Reaction successfully updated!" };
+  }
+
+  @Router.delete("/reactions")
+  async deleteReaction(session: SessionDoc, item: string) {
+    const user = Sessioning.getUser(session);
+    const itemOid = new ObjectId(item);
+    await Reacting.assertReactionExists(user, itemOid);
+    await Reacting.delete(user, itemOid);
+    return { msg: "Reaction deleted successfully!" };
   }
 
   // get a user's followers

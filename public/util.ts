@@ -117,10 +117,16 @@ const operations: Operation[] = [
     fields: { type: "input", item: "input" },
   },
   {
+    name: "Update Reaction",
+    endpoint: "/api/reactions",
+    method: "PATCH",
+    fields: { type: "input", item: "input" },
+  },
+  {
     name: "Delete Reaction",
-    endpoint: "/api/reactions/:id",
+    endpoint: "/api/reactions",
     method: "DELETE",
-    fields: { id: "input" },
+    fields: { item: "input" },
   },
   {
     name: "Get a User's Followers",

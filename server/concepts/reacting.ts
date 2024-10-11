@@ -40,27 +40,44 @@ export default class ReactingConcept {
     return await this.reactions.readMany({ item });
   }
 
-  async delete(_id: ObjectId) {
-    await this.reactions.deleteOne({ _id });
+  async update(author: ObjectId, type: string, item: ObjectId) {
+    await this.reactions.partialUpdateOne({ author, item }, { type });
+    return { msg: "Reaction successfully updated!" };
+  }
+
+  async delete(author: ObjectId, item: ObjectId) {
+    await this.reactions.deleteOne({ author, item });
     return { msg: "Reaction deleted successfully!" };
   }
 
-  async assertAuthorIsUser(_id: ObjectId, user: ObjectId) {
-    const reaction = await this.reactions.readOne({ _id });
-    if (!reaction) {
-      throw new NotFoundError(`Reaction ${_id} does not exist!`);
+  async assertReactionExists(author: ObjectId, item: ObjectId) {
+    if (!(await this.reactions.readOne({ author, item }))) {
+      throw new ReactionNotFoundError(author, item);
     }
-    if (reaction.author.toString() !== user.toString()) {
-      throw new ReactionAuthorNotMatchError(user, _id);
+  }
+
+  async assertNotAlreadyReacted(author: ObjectId, item: ObjectId) {
+    const reaction = await this.reactions.readOne({ author, item });
+    if (reaction) {
+      throw new AlreadyReactedError(author, item);
     }
   }
 }
 
-export class ReactionAuthorNotMatchError extends NotAllowedError {
+export class ReactionNotFoundError extends NotFoundError {
   constructor(
     public readonly author: ObjectId,
-    public readonly _id: ObjectId,
+    public readonly item: ObjectId,
   ) {
-    super("{0} is not the author of reaction {1}!", author, _id);
+    super("Reaction not found for {0} on item {1}!", author, item);
+  }
+}
+
+export class AlreadyReactedError extends NotAllowedError {
+  constructor(
+    public readonly author: ObjectId,
+    public readonly item: ObjectId,
+  ) {
+    super("{0} has already reacted to item {1}!", author, item);
   }
 }
